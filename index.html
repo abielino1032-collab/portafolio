@@ -327,11 +327,11 @@ function updatePie() {
           callbacks:{label:ctx=>' '+ctx.label+': '+ctx.parsed+'%'}}}}
     });
   }
-  document.getElementById('pie-legend').innerHTML = active.map((a,k)=>`
+document.getElementById('pie-legend').innerHTML = active.map((a,k)=>`
     <div class="pie-leg-item">
       <div class="pie-leg-dot" style="background:${a.color}"></div>
       <span style="flex:1">${a.name.split('(')[0].trim()}</span>
-      <span style="font-family:'DM Mono',monospace;color:var(--text)">${data[k]}%</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--muted)">${a.ret}% / año</span>
     </div>`).join('');
 }
 
