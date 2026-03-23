@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portafolio de Inversión</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f11;
+    --surface: #17171a;
+    --surface2: #1e1e22;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #4ade80;
+    --warn: #f97316;
+    --danger: #ef4444;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
+  .top-bar { border-bottom: 1px solid var(--border); padding: .85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; background: var(--surface); position: sticky; top: 0; z-index: 10; }
+  .logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: .08em; }
+  .top-right { display: flex; align-items: center; gap: 10px; }
+  .badge { font-size: 11px; background: rgba(74,222,128,0.1); color: var(--accent); padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(74,222,128,0.2); }
+  .saved-badge { font-size: 11px; color: var(--muted); opacity: 0; transition: opacity .4s; }
+  .saved-badge.show { opacity: 1; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 1.75rem 1.25rem 3rem; }
+  h1 { font-size: 24px; font-weight: 300; letter-spacing: -.02em; margin-bottom: 4px; }
+  h1 span { color: var(--accent); font-weight: 500; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 1.75rem; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+  .metric { background: var(--surface2); border-radius: var(--radius-sm); padding: .85rem 1rem; border: 1px solid var(--border); }
+  .metric-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+  .metric-value { font-size: 19px; font-weight: 500; font-family: 'DM Mono', monospace; }
+  .metric-sub { font-size: 11px; margin-top: 3px; }
+  .positive { color: var(--accent); }
+  .negative { color: var(--danger); }
+
+  input[type=number], select {
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px;
+    padding: 6px 10px; outline: none; transition: border-color .2s; width: 100%;
+  }
+  input[type=number]:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; outline: none; border: none; min-width: 0; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); box-shadow: 0 0 0 2px rgba(74,222,128,0.25); }
+  input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+
+  .toggle-btn { width: 36px; height: 20px; border-radius: 10px; border: none; cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0; }
+  .toggle-btn.on { background: var(--accent); }
+  .toggle-btn.off { background: #333; }
+  .toggle-btn::after { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #fff; top: 3px; transition: left .2s; }
+  .toggle-btn.on::after { left: 19px; }
+  .toggle-btn.off::after { left: 3px; }
+
+  .asset-row { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .asset-row:last-child { border-bottom: none; }
+  .asset-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .asset-name { font-size: 12px; font-weight: 500; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .asset-meta { font-size: 10px; color: var(--muted); min-width: 56px; line-height: 1.5; flex-shrink: 0; }
+  .bar-bg { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; min-width: 40px; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+  .alloc-input { width: 48px !important; font-size: 12px; text-align: center; padding: 3px 4px; flex-shrink: 0; }
+  .pct { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+  .risk-tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .risk-tab { padding: 5px 12px; border-radius: 20px; font-size: 12px; border: 1px solid var(--border2); background: transparent; cursor: pointer; color: var(--muted); transition: all .2s; }
+  .risk-tab.active { background: rgba(74,222,128,0.12); color: var(--accent); border-color: rgba(74,222,128,0.3); }
+
+  .chart-tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .chart-tab { padding: 5px 12px; border-radius: 6px; font-size: 12px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--muted); transition: all .2s; }
+  .chart-tab.active { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+  .range-row { display: flex; align-items: center; gap: 10px; margin-bottom: .9rem; }
+  .range-label { font-size: 12px; color: var(--muted); min-width: 130px; flex-shrink: 0; }
+  .range-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); min-width: 90px; text-align: right; flex-shrink: 0; }
+
+  .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: .75rem; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  .warn-msg { font-size: 12px; color: var(--warn); margin-top: 8px; min-height: 16px; }
+  .bottom-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 1rem; }
+
+  .dist-layout { display: grid; grid-template-columns: 1fr 210px; gap: 1.25rem; align-items: start; }
+  .pie-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .pie-canvas-wrap { position: relative; width: 180px; height: 180px; flex-shrink: 0; }
+  .pie-leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+  .pie-leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  @media(max-width: 640px) {
+    .grid2 { grid-template-columns: 1fr; }
+    .grid4 { grid-template-columns: 1fr 1fr; }
+    .bottom-cards { grid-template-columns: 1fr 1fr; }
+    .dist-layout { grid-template-columns: 1fr; }
+    .pie-wrap { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+    .pie-canvas-wrap { width: 140px; height: 140px; }
+    .asset-meta { display: none; }
+    .range-label { min-width: 100px; font-size: 11px; }
+    .range-val { min-width: 75px; font-size: 11px; }
+    h1 { font-size: 20px; }
+    .metric-value { font-size: 16px; }
+    .top-bar { padding: .75rem 1rem; }
+    .container { padding: 1.25rem 1rem 2.5rem; }
+  }
+  @media(max-width: 400px) {
+    .bottom-cards { grid-template-columns: 1fr 1fr; }
+    .range-row { flex-wrap: wrap; gap: 6px; }
+    .range-label { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="logo">PORTAFOLIO.MX</span>
+  <div class="top-right">
+    <span class="saved-badge" id="saved-badge">✓ Guardado</span>
+    <span class="badge">Simulador</span>
+  </div>
+</div>
+
+<div class="container">
+  <h1>Portafolio de <span>Inversión</span></h1>
+  <p class="sub">Configura tu asignación de activos y analiza el comportamiento proyectado</p>
+
+  <div class="grid2">
+    <div>
+      <p class="section-label">Capital inicial</p>
+      <div class="card" style="padding:1rem">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <label style="font-size:12px;color:var(--muted);min-width:70px;flex-shrink:0">Monto</label>
+          <input type="number" id="capital" value="100000" step="1000">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:12px;color:var(--muted);min-width:70px;flex-shrink:0">Moneda</label>
+          <select id="currency">
+            <option value="MXN" selected>MXN — Peso</option>
+            <option value="USD">USD — Dólar</option>
+            <option value="EUR">EUR — Euro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="section-label">Perfil de riesgo</p>
+      <div class="card" style="padding:1rem">
+        <div class="risk-tabs">
+          <button class="risk-tab active" id="r-conservador" onclick="setRisk('conservador')">Conservador</button>
+          <button class="risk-tab" id="r-moderado" onclick="setRisk('moderado')">Moderado</button>
+          <button class="risk-tab" id="r-agresivo" onclick="setRisk('agresivo')">Agresivo</button>
+        </div>
+        <p id="risk-desc" style="font-size:12px;color:var(--muted)">Prioriza estabilidad. Mayor peso en renta fija y oro.</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-label">Distribución de activos</p>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div class="dist-layout">
+      <div>
+        <div id="assets-list"></div>
+        <p class="warn-msg" id="warn-msg"></p>
+      </div>
+      <div class="pie-wrap">
+        <div class="pie-canvas-wrap">
+          <canvas id="pieChart"></canvas>
+        </div>
+        <div id="pie-legend" style="width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid4">
+    <div class="metric"><p class="metric-label">Valor proyectado</p><p class="metric-value" id="m-valor">$0</p><p class="metric-sub positive" id="m-ganancia">+$0</p></div>
+    <div class="metric"><p class="metric-label">Rendimiento anual</p><p class="metric-value" id="m-rend">0.0%</p><p class="metric-sub" style="color:var(--muted)">prom. ponderado</p></div>
+    <div class="metric"><p class="metric-label">Volatilidad</p><p class="metric-value" id="m-vol">0.0%</p><p class="metric-sub" style="color:var(--muted)">desv. estándar</p></div>
+    <div class="metric"><p class="metric-label">Índice Sharpe</p><p class="metric-value" id="m-sharpe">0.0</p><p class="metric-sub" style="color:var(--muted)">rend. / riesgo</p></div>
+  </div>
+
+  <p class="section-label">Comportamiento del portafolio</p>
+  <div class="card">
+    <div class="chart-tabs">
+      <button class="chart-tab active" onclick="setView('total')">Valor total</button>
+      <button class="chart-tab" onclick="setView('por-activo')">Por activo</button>
+      <button class="chart-tab" onclick="setView('rendimiento')">Rendimiento %</button>
+    </div>
+    <div class="range-row">
+      <span class="range-label">Período (años)</span>
+      <input type="range" id="years-slider" min="1" max="100" value="10" step="1">
+      <span class="range-val" id="years-label">10 años</span>
+    </div>
+    <div class="range-row">
+      <span class="range-label">Aportación mensual</span>
+      <input type="range" id="aport-slider" min="0" max="100000" value="0" step="1000">
+      <span class="range-val" id="aport-label">$0 / mes</span>
+    </div>
+    <div class="legend-row" id="chart-legend"></div>
+    <div style="position:relative;width:100%;height:280px">
+      <canvas id="mainChart"></canvas>
+    </div>
+    <div class="bottom-cards">
+      <div class="metric"><p class="metric-label">Al inicio</p><p class="metric-value" id="c-inicio">$0</p></div>
+      <div class="metric"><p class="metric-label">Total</p><p class="metric-value" id="c-final">$0</p></div>
+      <div class="metric"><p class="metric-label">Ganancia total</p><p class="metric-value" id="c-ganancia">$0</p></div>
+      <div class="metric"><p class="metric-label">Aportación</p><p class="metric-value" id="c-aportado">$0</p></div>
+    </div>
+  </div>
+
+  <p style="font-size:11px;color:#444;text-align:center;margin-top:2rem">
+    Los rendimientos son estimaciones basadas en datos históricos y no garantizan resultados futuros.
+  </p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const STORAGE_KEY = 'portafolio_mx_v1';
+
+const ASSETS = [
+  {id:'acciones_us',  name:'Acciones EE.UU. (S&P500)',  ret:10.2, vol:16.5, color:'#3b82f6', defaultPct:30},
+  {id:'acciones_mx',  name:'Acciones México (IPC)',      ret:8.5,  vol:19.0, color:'#4ade80', defaultPct:15},
+  {id:'acciones_int', name:'Acciones internacionales',   ret:7.8,  vol:17.2, color:'#a78bfa', defaultPct:10},
+  {id:'bonos_gob',    name:'Bonos gubernamentales',      ret:4.2,  vol:5.5,  color:'#fbbf24', defaultPct:20},
+  {id:'bonos_corp',   name:'Bonos corporativos',         ret:5.8,  vol:7.8,  color:'#f472b6', defaultPct:10},
+  {id:'bienes_raices',name:'Bienes raíces (REITs)',      ret:8.1,  vol:14.3, color:'#fb923c', defaultPct:5},
+  {id:'oro',          name:'Oro',                        ret:4.5,  vol:13.2, color:'#facc15', defaultPct:5},
+  {id:'crypto',       name:'Criptomonedas',              ret:22.0, vol:75.0, color:'#f87171', defaultPct:5},
+];
+
+const RISK_PRESETS = {
+  conservador:{desc:'Prioriza estabilidad. Mayor peso en renta fija y oro.',alloc:[15,5,5,35,20,5,15,0]},
+  moderado:   {desc:'Equilibrio entre crecimiento y protección.',           alloc:[30,15,10,20,10,5,5,5]},
+  agresivo:   {desc:'Máximo potencial de crecimiento. Alta volatilidad.',   alloc:[40,15,15,5,5,5,5,10]},
+};
+
+function loadState() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch(e) {}
+  return null;
+}
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const b = document.getElementById('saved-badge');
+    b.classList.add('show');
+    clearTimeout(window._st);
+    window._st = setTimeout(() => b.classList.remove('show'), 2000);
+  } catch(e) {}
+}
+
+const saved = loadState();
+let state = saved || { capital:100000, currency:'MXN', active:ASSETS.map(()=>true), alloc:ASSETS.map(a=>a.defaultPct), years:10, aport:0, view:'total', risk:'conservador' };
+if (!state.active || state.active.length !== ASSETS.length) state.active = ASSETS.map(()=>true);
+if (!state.alloc  || state.alloc.length  !== ASSETS.length) state.alloc  = ASSETS.map(a=>a.defaultPct);
+
+let mainChart = null, pieChart = null;
+
+function fmt(v) { return (state.currency==='EUR'?'€':'$') + Math.round(v).toLocaleString('es-MX'); }
+function getAllocNorm() {
+  const total = state.alloc.reduce((s,v,i)=>s+(state.active[i]?v:0),0);
+  return ASSETS.map((_,i)=>state.active[i]&&total>0?state.alloc[i]/total:0);
+}
+
+function restoreUI() {
+  document.getElementById('capital').value       = state.capital;
+  document.getElementById('currency').value      = state.currency;
+  document.getElementById('years-slider').value  = state.years;
+  document.getElementById('aport-slider').value  = state.aport;
+  document.getElementById('years-label').textContent = state.years+' año'+(state.years==1?'':'s');
+  document.getElementById('aport-label').textContent = '$'+Number(state.aport).toLocaleString('es-MX')+' / mes';
+  ['conservador','moderado','agresivo'].forEach(k => document.getElementById('r-'+k).className='risk-tab'+(k===state.risk?' active':''));
+  document.getElementById('risk-desc').textContent = RISK_PRESETS[state.risk].desc;
+  document.querySelectorAll('.chart-tabs .chart-tab').forEach((b,i)=>{
+    b.className='chart-tab'+(['total','por-activo','rendimiento'][i]===state.view?' active':'');
+  });
+}
+
+function renderAssets() {
+  document.getElementById('assets-list').innerHTML = ASSETS.map((a,i)=>`
+    <div class="asset-row">
+      <div class="asset-dot" style="background:${a.color}"></div>
+      <span class="asset-name">${a.name}</span>
+      <span class="asset-meta">Rend: ${a.ret}%<br>Vol: ${a.vol}%</span>
+      <div class="bar-bg"><div class="bar-fill" id="bar-${i}" style="background:${a.color};width:${state.alloc[i]}%"></div></div>
+      <input type="number" class="alloc-input" id="inp-${i}" value="${state.alloc[i]}" min="0" max="100"
+        onchange="setAlloc(${i},+this.value)" ${!state.active[i]?'disabled':''}>
+      <span class="pct">%</span>
+      <button class="toggle-btn ${state.active[i]?'on':'off'}" id="tog-${i}" onclick="toggleAsset(${i})"></button>
+    </div>`).join('');
+}
+
+function toggleAsset(i) { state.active[i]=!state.active[i]; document.getElementById('tog-'+i).className='toggle-btn '+(state.active[i]?'on':'off'); document.getElementById('inp-'+i).disabled=!state.active[i]; validate(); update(); saveState(); }
+function setAlloc(i,val) { state.alloc[i]=Math.max(0,Math.min(100,val)); document.getElementById('bar-'+i).style.width=state.alloc[i]+'%'; validate(); update(); saveState(); }
+function validate() { const t=state.alloc.reduce((s,v,i)=>s+(state.active[i]?v:0),0); document.getElementById('warn-msg').textContent=Math.abs(t-100)>0.5?`Suma actual: ${t}% — debe ser 100%. Diferencia: ${(100-t).toFixed(0)}%`:''; }
+
+function updatePie() {
+  const norm   = getAllocNorm();
+  const active = ASSETS.filter((_,i)=>state.active[i]&&norm[i]>0);
+  const idxs   = active.map(a=>ASSETS.indexOf(a));
+  const data   = idxs.map(i=>Math.round(norm[i]*100));
+  const colors = active.map(a=>a.color);
+  const labels = active.map(a=>a.name.split('(')[0].trim());
+
+  if (pieChart) {
+    pieChart.data.labels = labels;
+    pieChart.data.datasets[0].data = data;
+    pieChart.data.datasets[0].backgroundColor = colors;
+    pieChart.update();
+  } else {
+    pieChart = new Chart(document.getElementById('pieChart'),{
+      type:'doughnut',
+      data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:'#17171a'}]},
+      options:{responsive:true,maintainAspectRatio:true,cutout:'58%',
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(23,23,26,0.95)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#aaa',bodyColor:'#f0f0f0',
+          callbacks:{label:ctx=>' '+ctx.label+': '+ctx.parsed+'%'}}}}
+    });
+  }
+  document.getElementById('pie-legend').innerHTML = active.map((a,k)=>`
+    <div class="pie-leg-item">
+      <div class="pie-leg-dot" style="background:${a.color}"></div>
+      <span style="flex:1">${a.name.split('(')[0].trim()}</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--text)">${data[k]}%</span>
+    </div>`).join('');
+}
+
+function calcMetrics() {
+  const norm=getAllocNorm();
+  const ret=ASSETS.reduce((s,a,i)=>s+norm[i]*a.ret,0);
+  const vol=Math.sqrt(ASSETS.reduce((s,a,i)=>s+Math.pow(norm[i]*a.vol,2),0));
+  return{ret,vol,sharpe:vol>0?(ret-4.5)/vol:0};
+}
+function projectValue(years,monthly) {
+  const norm=getAllocNorm(), r=ASSETS.reduce((s,a,i)=>s+norm[i]*(a.ret/100),0)/12;
+  let v=state.capital; const vals=[v];
+  for(let m=1;m<=years*12;m++){v=v*(1+r)+monthly;if(m%12===0)vals.push(v);}
+  return vals;
+}
+function projectPerAsset(years,monthly) {
+  const norm=getAllocNorm();
+  return ASSETS.map((a,i)=>{
+    if(!state.active[i])return null;
+    const w=norm[i],r=(a.ret/100)/12; let v=state.capital*w; const vals=[v];
+    for(let m=1;m<=years*12;m++){v=v*(1+r)+(monthly*w);if(m%12===0)vals.push(v);}
+    return vals;
+  });
+}
+function buildLabels(y){const n=new Date().getFullYear();return Array.from({length:y+1},(_,i)=>i===0?'Hoy':String(n+i));}
+
+function update() {
+  const cap=state.capital, {ret,vol,sharpe}=calcMetrics();
+  const yrs=state.years, aport=state.aport, norm=getAllocNorm();
+  const projected=projectValue(yrs,aport);
+  const finalVal=projected[projected.length-1];
+  const totalAport=aport*12*yrs;
+  const gain=finalVal-cap-totalAport;
+
+  document.getElementById('m-valor').textContent=fmt(finalVal);
+  const gEl=document.getElementById('m-ganancia'); gEl.textContent=(gain>=0?'+':'')+fmt(gain); gEl.style.color=gain>=0?'#4ade80':'#ef4444';
+  document.getElementById('m-rend').textContent=ret.toFixed(1)+'%';
+  document.getElementById('m-vol').textContent=vol.toFixed(1)+'%';
+  document.getElementById('m-sharpe').textContent=sharpe.toFixed(2);
+  document.getElementById('c-inicio').textContent=fmt(cap);
+  document.getElementById('c-final').textContent=fmt(finalVal);
+  const cg=document.getElementById('c-ganancia'); cg.textContent=(gain>=0?'+':'')+fmt(gain); cg.style.color=gain>=0?'#4ade80':'#ef4444';
+  document.getElementById('c-aportado').textContent=fmt(totalAport);
+
+  updatePie();
+
+  const labels=buildLabels(yrs);
+  let datasets=[];
+  if(state.view==='total'){
+    datasets=[{label:'Portafolio',data:projected,borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,0.06)',fill:true,tension:.4,pointRadius:2,borderWidth:2}];
+  } else if(state.view==='por-activo'){
+    const pa=projectPerAsset(yrs,aport);
+    datasets=ASSETS.map((a,i)=>pa[i]?{label:a.name,data:pa[i],borderColor:a.color,backgroundColor:'transparent',tension:.4,pointRadius:0,borderWidth:1.5}:null).filter(Boolean);
+  } else {
+    datasets=[{label:'Rendimiento',data:projected.map((v,i)=>+((v/(cap+aport*12*(i||1))-1)*100).toFixed(2)),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.06)',fill:true,tension:.4,pointRadius:2,borderWidth:2}];
+  }
+
+  const legendEl=document.getElementById('chart-legend');
+  if(state.view==='por-activo'){
+    legendEl.innerHTML=ASSETS.filter((_,i)=>state.active[i]).map(a=>`<span class="leg-item"><span class="leg-dot" style="background:${a.color}"></span>${a.name.split('(')[0].trim()}</span>`).join('');
+  } else {
+    legendEl.innerHTML=ASSETS.map((a,i)=>state.active[i]?`<span class="leg-item"><span class="leg-dot" style="background:${a.color}"></span>${a.name.split('(')[0].trim()} ${Math.round(norm[i]*100)}%</span>`:null).filter(Boolean).join('');
+  }
+
+  const gc='rgba(255,255,255,0.05)',tc='#666';
+  const yFmt=state.view==='rendimiento'
+    ?{callback:v=>v.toFixed(0)+'%',color:tc}
+    :{callback:v=>v>=1e9?'$'+(v/1e9).toFixed(1)+'B':v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+(v/1e3).toFixed(0)+'k',color:tc};
+
+  if(mainChart){mainChart.data.labels=labels;mainChart.data.datasets=datasets;mainChart.options.scales.y.ticks=yFmt;mainChart.update('active');}
+  else{
+    mainChart=new Chart(document.getElementById('mainChart'),{
+      type:'line',data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(23,23,26,0.95)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#aaa',bodyColor:'#f0f0f0',
+          callbacks:{label:ctx=>{const v=ctx.parsed.y;return' '+ctx.dataset.label+': '+(state.view==='rendimiento'?v.toFixed(1)+'%':fmt(v));}}}},
+        scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:11},maxTicksLimit:12}},y:{grid:{color:gc},ticks:{...yFmt,font:{size:11}}}}}
+    });
+  }
+}
+
+function setRisk(r) {
+  state.risk=r;
+  ['conservador','moderado','agresivo'].forEach(k=>document.getElementById('r-'+k).className='risk-tab'+(k===r?' active':''));
+  document.getElementById('risk-desc').textContent=RISK_PRESETS[r].desc;
+  RISK_PRESETS[r].alloc.forEach((v,i)=>{state.alloc[i]=v;});
+  renderAssets(); validate(); update(); saveState();
+}
+function setView(v) {
+  state.view=v;
+  document.querySelectorAll('.chart-tabs .chart-tab').forEach((b,i)=>{b.className='chart-tab'+(['total','por-activo','rendimiento'][i]===v?' active':'');});
+  update(); saveState();
+}
+
+document.getElementById('capital').addEventListener('input',e=>{state.capital=+e.target.value||0;update();saveState();});
+document.getElementById('currency').addEventListener('change',e=>{state.currency=e.target.value;update();saveState();});
+document.getElementById('years-slider').addEventListener('input',e=>{state.years=+e.target.value;document.getElementById('years-label').textContent=e.target.value+' año'+(e.target.value==1?'':'s');update();saveState();});
+document.getElementById('aport-slider').addEventListener('input',e=>{state.aport=+e.target.value;document.getElementById('aport-label').textContent='$'+Number(e.target.value).toLocaleString('es-MX')+' / mes';update();saveState();});
+
+renderAssets();
+restoreUI();
+validate();
+update();
+</script>
+</body>
+</html>
